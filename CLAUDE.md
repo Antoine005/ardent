@@ -163,3 +163,13 @@ Header à inclure dans chaque fichier source :
 - **ESP32-CAM** (Espressif, WiFi + caméra OV2640 + antenne externe)
 - Adaptateur USB-UART FTDI **à commander** (indispensable pour flasher l'ESP32-CAM)
 - Capteurs à acquérir : MPU-6050 (accéléromètre I2C), DHT22 (température)
+
+---
+
+## Décisions architecturales actées
+
+| Sujet | Décision |
+|---|---|
+| Communication ESP32 → Dashboard | **WiFi + MQTT** — broker Mosquitto souverain sur Scaleway |
+| Base de données timeseries | **PostgreSQL + TimescaleDB** |
+| CI/CD | À décider (GitHub Actions vs Forgejo self-hosted)
