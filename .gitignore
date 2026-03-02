@@ -46,6 +46,9 @@ Thumbs.db
 .env.production
 secrets/
 
+# Local docs / session notes (may contain private data)
+docs/
+
 # Test coverage
 coverage/
 *.lcov
