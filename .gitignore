@@ -52,3 +52,4 @@ docs/
 # Test coverage
 coverage/
 *.lcov
+mosquitto/passwd
