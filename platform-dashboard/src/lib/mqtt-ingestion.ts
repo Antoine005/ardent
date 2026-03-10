@@ -41,6 +41,10 @@ export function startMqttIngestion(): void {
     clientId: `fovet-vigie-ingestion-${process.pid}`,
     clean: true,
     reconnectPeriod: 5000,
+    ...(process.env.MQTT_USERNAME && {
+      username: process.env.MQTT_USERNAME,
+      password: process.env.MQTT_PASSWORD,
+    }),
   });
 
   client.on("connect", () => {

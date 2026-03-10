@@ -1,0 +1,8 @@
+# Fovet MQTT ACL
+# fovet-vigie: read all topics (ingestion service)
+user fovet-vigie
+topic read fovet/#
+
+# fovet-device: write only to its own readings topic
+user fovet-device
+topic write fovet/devices/+/readings
