@@ -7,7 +7,7 @@
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { cors } from "hono/cors";
-import { jwt } from "hono/jwt";
+import { jwt, sign } from "hono/jwt";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -47,6 +47,25 @@ app.use(
 // GET /api/health — public
 // -------------------------------------------------------------------------
 app.get("/health", (c) => c.json({ status: "ok", service: "fovet-vigie" }));
+
+// -------------------------------------------------------------------------
+// POST /api/auth/token — exchange dashboard password for JWT
+// -------------------------------------------------------------------------
+app.post("/auth/token", async (c) => {
+  const body = await c.req.json<{ password?: string }>().catch(() => ({ password: undefined }));
+  const dashboardPassword = process.env.DASHBOARD_PASSWORD;
+
+  if (!dashboardPassword || !body.password || body.password !== dashboardPassword) {
+    return c.json({ error: "Invalid password" }, 401);
+  }
+
+  const token = await sign(
+    { role: "dashboard", exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 }, // 7 days
+    jwtSecret,
+    "HS256"
+  );
+  return c.json({ token });
+});
 
 // -------------------------------------------------------------------------
 // GET /api/devices — list all active devices

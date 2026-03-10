@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { apiFetch } from "@/lib/api-client";
 import {
   ResponsiveContainer,
   LineChart,
@@ -32,7 +33,7 @@ export function ReadingChart({ deviceId }: Props) {
   const [readings, setReadings] = useState<Reading[]>([]);
 
   const fetchReadings = useCallback(() => {
-    fetch(`/api/devices/${deviceId}/readings?limit=200`)
+    apiFetch(`/api/devices/${deviceId}/readings?limit=200`)
       .then((r) => r.json())
       .then(setReadings)
       .catch(console.error);

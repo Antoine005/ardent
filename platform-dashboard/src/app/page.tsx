@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { apiFetch, clearToken, getToken } from "@/lib/api-client";
 import { ReadingChart } from "@/components/ReadingChart";
 import { AlertList } from "@/components/AlertList";
 import { DeviceCard } from "@/components/DeviceCard";
@@ -14,18 +16,23 @@ interface Device {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/devices")
+    if (!getToken()) {
+      router.push("/login");
+      return;
+    }
+    apiFetch("/api/devices")
       .then((r) => r.json())
       .then((data: Device[]) => {
         setDevices(data);
         if (data.length > 0) setSelectedId(data[0].id);
       })
       .catch(console.error);
-  }, []);
+  }, [router]);
 
   return (
     <main className="min-h-screen bg-gray-950 text-gray-100 p-6">
@@ -38,9 +45,17 @@ export default function DashboardPage() {
             Supervision temps réel — Fovet Sentinelle
           </p>
         </div>
-        <span className="text-xs text-gray-500 font-mono">
-          {new Date().toLocaleString("fr-FR")}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-500 font-mono">
+            {new Date().toLocaleString("fr-FR")}
+          </span>
+          <button
+            onClick={() => { clearToken(); router.push("/login"); }}
+            className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+          >
+            Déconnexion
+          </button>
+        </div>
       </header>
 
       <section className="mb-6">

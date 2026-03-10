@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { apiFetch } from "@/lib/api-client";
 
 interface Alert {
   id: string;
@@ -21,7 +22,7 @@ export function AlertList({ deviceId }: Props) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
   const fetchAlerts = useCallback(() => {
-    fetch(`/api/devices/${deviceId}/alerts`)
+    apiFetch(`/api/devices/${deviceId}/alerts`)
       .then((r) => r.json())
       .then(setAlerts)
       .catch(console.error);
@@ -34,7 +35,7 @@ export function AlertList({ deviceId }: Props) {
   }, [fetchAlerts]);
 
   const acknowledge = async (id: string) => {
-    await fetch(`/api/alerts/${id}/ack`, { method: "PATCH" });
+    await apiFetch(`/api/alerts/${id}/ack`, { method: "PATCH" });
     fetchAlerts();
   };
 
