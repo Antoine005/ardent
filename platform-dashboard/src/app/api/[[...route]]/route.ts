@@ -120,6 +120,9 @@ app.get("/devices/:id/readings", async (c) => {
   const rawLimit = parseInt(c.req.query("limit") ?? "100", 10);
   const limit = Math.min(Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 100, 1000);
 
+  const device = await prisma.device.findUnique({ where: { id }, select: { id: true } });
+  if (!device) return c.json({ error: "Device not found" }, 404);
+
   const readings = await prisma.reading.findMany({
     where: { deviceId: id },
     orderBy: { timestamp: "desc" },
@@ -134,6 +137,9 @@ app.get("/devices/:id/readings", async (c) => {
 app.get("/devices/:id/alerts", async (c) => {
   const { id } = c.req.param();
 
+  const device = await prisma.device.findUnique({ where: { id }, select: { id: true } });
+  if (!device) return c.json({ error: "Device not found" }, 404);
+
   const alerts = await prisma.alert.findMany({
     where: { deviceId: id, acknowledged: false },
     orderBy: { timestamp: "desc" },
@@ -147,6 +153,9 @@ app.get("/devices/:id/alerts", async (c) => {
 // -------------------------------------------------------------------------
 app.patch("/alerts/:id/ack", async (c) => {
   const { id } = c.req.param();
+  const existing = await prisma.alert.findUnique({ where: { id }, select: { id: true } });
+  if (!existing) return c.json({ error: "Alert not found" }, 404);
+
   const alert = await prisma.alert.update({
     where: { id },
     data: { acknowledged: true, acknowledgedAt: new Date() },

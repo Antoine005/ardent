@@ -60,9 +60,42 @@ export function startMqttIngestion(): void {
       // Extract mqttClientId from topic: fovet/devices/<id>/readings
       const parts = topic.split("/");
       const mqttClientId = parts[2];
-      if (!mqttClientId) return;
+      if (!mqttClientId || parts.length !== 4) return;
 
-      const data: SensorPayload = JSON.parse(payload.toString());
+      // Parse and validate payload
+      let data: SensorPayload;
+      try {
+        data = JSON.parse(payload.toString());
+      } catch {
+        console.warn(`[MQTT] Invalid JSON from ${mqttClientId}`);
+        return;
+      }
+
+      if (
+        typeof data.value !== "number" || !isFinite(data.value) ||
+        typeof data.mean !== "number" || !isFinite(data.mean) ||
+        typeof data.stddev !== "number" || !isFinite(data.stddev) || data.stddev < 0 ||
+        typeof data.zScore !== "number" || !isFinite(data.zScore) ||
+        typeof data.anomaly !== "boolean"
+      ) {
+        console.warn(`[MQTT] Invalid payload fields from ${mqttClientId}`);
+        return;
+      }
+
+      // Constrain timestamp to ±5 minutes from server time
+      const now = Date.now();
+      const FIVE_MIN = 5 * 60 * 1000;
+      let timestamp: Date;
+      if (data.ts !== undefined) {
+        if (typeof data.ts !== "number" || !isFinite(data.ts) ||
+            data.ts < now - FIVE_MIN || data.ts > now + FIVE_MIN) {
+          console.warn(`[MQTT] Rejected timestamp from ${mqttClientId}: ${data.ts}`);
+          return;
+        }
+        timestamp = new Date(data.ts);
+      } else {
+        timestamp = new Date();
+      }
 
       // Lookup device
       const device = await prisma.device.findUnique({
@@ -70,8 +103,6 @@ export function startMqttIngestion(): void {
         select: { id: true, active: true },
       });
       if (!device || !device.active) return;
-
-      const timestamp = data.ts ? new Date(data.ts) : new Date();
 
       // Persist reading
       await prisma.reading.create({
