@@ -1,5 +1,13 @@
+/*
+ * Fovet SDK — Sentinelle
+ * Copyright (C) 2026 Antoine Porte. All rights reserved.
+ * LGPL v3 for non-commercial use.
+ * Commercial licensing: contact@fovet.eu
+ */
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
+import { cors } from "hono/cors";
+import { jwt } from "hono/jwt";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -7,7 +15,36 @@ export const runtime = "nodejs";
 const app = new Hono().basePath("/api");
 
 // -------------------------------------------------------------------------
-// GET /api/health
+// CORS — allow only configured origin
+// -------------------------------------------------------------------------
+app.use(
+  "/*",
+  cors({
+    origin: process.env.ALLOWED_ORIGIN ?? "http://localhost:3000",
+    allowMethods: ["GET", "POST", "PATCH", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// -------------------------------------------------------------------------
+// JWT auth — protect all routes except /health
+// -------------------------------------------------------------------------
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  throw new Error("JWT_SECRET environment variable is not set");
+}
+
+app.use(
+  "/devices/*",
+  jwt({ secret: jwtSecret, alg: "HS256" })
+);
+app.use(
+  "/alerts/*",
+  jwt({ secret: jwtSecret, alg: "HS256" })
+);
+
+// -------------------------------------------------------------------------
+// GET /api/health — public
 // -------------------------------------------------------------------------
 app.get("/health", (c) => c.json({ status: "ok", service: "fovet-vigie" }));
 
