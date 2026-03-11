@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fovet — Détection d'anomalies embarquée souveraine</title>
+  <meta name="description" content="SDK C/C++ temps réel pour la détection d'anomalies sur microcontrôleurs. Zéro cloud étranger. Cible défense, industriel, aéronautique." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0b0c0e;
+      --bg-card:  #111317;
+      --border:   #1f2128;
+      --text:     #e8eaf0;
+      --muted:    #6b7280;
+      --accent:   #3b82f6;
+      --accent-d: #1d4ed8;
+      --mono:     'Courier New', Courier, monospace;
+      --sans:     -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Nav ── */
+    nav {
+      border-bottom: 1px solid var(--border);
+      padding: 18px 0;
+      position: sticky;
+      top: 0;
+      background: rgba(11, 12, 14, 0.92);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.04em;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 32px;
+    }
+
+    nav ul a {
+      color: var(--muted);
+      font-size: 0.875rem;
+      letter-spacing: 0.02em;
+      transition: color 0.15s;
+    }
+
+    nav ul a:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 96px 0 80px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      max-width: 680px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero p {
+      font-size: 1.125rem;
+      color: var(--muted);
+      max-width: 540px;
+      margin-bottom: 36px;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      padding: 11px 24px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+
+    .btn-primary:hover { background: var(--accent-d); text-decoration: none; }
+
+    .btn-ghost {
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 11px 0;
+      transition: color 0.15s;
+    }
+
+    .btn-ghost:hover { color: var(--text); text-decoration: none; }
+
+    .hero-metrics {
+      display: flex;
+      gap: 40px;
+      margin-top: 56px;
+      flex-wrap: wrap;
+    }
+
+    .metric-value {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section:last-of-type { border-bottom: none; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 48px;
+    }
+
+    /* ── Products ── */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .product-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px;
+      transition: border-color 0.15s;
+    }
+
+    .product-card:hover { border-color: var(--accent); }
+
+    .product-tag {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    .product-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .product-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .product-specs {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .spec {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .spec::before { content: "›  "; color: var(--accent); }
+
+    /* ── Why ── */
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+
+    .why-item h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .why-item p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .why-icon {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    /* ── Contact ── */
+    .contact-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .contact-block h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .contact-block p {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding: 32px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    footer .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    footer p {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .footer-legal {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-legal a {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .footer-legal a:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .hero { padding: 64px 0 56px; }
+      .hero-metrics { gap: 28px; }
+      .contact-block { padding: 28px; }
+      nav ul { gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="container">
+      <span class="nav-logo">fovet<span>.</span>eu</span>
+      <ul>
+        <li><a href="#produits">Produits</a></li>
+        <li><a href="#pourquoi">Pourquoi</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="container">
+      <p class="hero-label">SDK Embarqué Souverain</p>
+      <h1>Détection d'anomalies<br /><em>temps réel</em> sur microcontrôleur</h1>
+      <p>
+        Fovet est un SDK C/C++ pour la détection d'anomalies en edge.
+        Zéro cloud étranger. Conçu pour la défense, l'industrie et l'aéronautique.
+      </p>
+      <div class="hero-cta">
+        <a href="#contact" class="btn-primary">Demander une démo</a>
+        <a href="#produits" class="btn-ghost">Découvrir les produits →</a>
+      </div>
+      <div class="hero-metrics">
+        <div>
+          <div class="metric-value">&lt; 1 ms</div>
+          <div class="metric-label">par échantillon à 80 MHz</div>
+        </div>
+        <div>
+          <div class="metric-value">&lt; 4 KB</div>
+          <div class="metric-label">RAM par détecteur</div>
+        </div>
+        <div>
+          <div class="metric-value">C99</div>
+          <div class="metric-label">zéro dépendance externe</div>
+        </div>
+        <div>
+          <div class="metric-value">0</div>
+          <div class="metric-label">allocation dynamique</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Produits -->
+  <section id="produits">
+    <div class="container">
+      <p class="section-label">01 — Produits</p>
+      <h2 class="section-title">La suite Fovet</h2>
+      <div class="products-grid">
+
+        <div class="product-card">
+          <div class="product-tag">edge · C99</div>
+          <div class="product-name">Fovet Sentinelle</div>
+          <p class="product-desc">
+            SDK embarqué pour la détection d'anomalies en temps réel sur microcontrôleurs.
+            Algorithme de Welford, stack uniquement, HAL abstrait.
+          </p>
+          <div class="product-specs">
+            <span class="spec">ESP32, STM32, RISC-V</span>
+            <span class="spec">PlatformIO / CMake</span>
+            <span class="spec">FreeRTOS compatible</span>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-tag">automl · python</div>
+          <div class="product-name">Fovet Forge</div>
+          <p class="product-desc">
+            Pipeline AutoML pour l'entraînement de modèles et l'export vers les cibles embarquées.
+            Du dataset au firmware en une commande.
+          </p>
+          <div class="product-specs">
+            <span class="spec">scikit-learn, TensorFlow</span>
+            <span class="spec">Export TFLite Micro</span>
+            <span class="spec">GPU Scaleway souverain</span>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-tag">dashboard · web</div>
+          <div class="product-name">Fovet Vigie</div>
+          <p class="product-desc">
+            Dashboard de supervision temps réel pour la gestion de flottes de capteurs.
+            MQTT souverain, alertes instantanées, historique TimescaleDB.
+          </p>
+          <div class="product-specs">
+            <span class="spec">Next.js / Hono</span>
+            <span class="spec">MQTT Mosquitto</span>
+            <span class="spec">PostgreSQL + TimescaleDB</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Pourquoi -->
+  <section id="pourquoi">
+    <div class="container">
+      <p class="section-label">02 — Pourquoi Fovet</p>
+      <h2 class="section-title">Souverain par conception</h2>
+      <div class="why-grid">
+
+        <div class="why-item">
+          <span class="why-icon">◈</span>
+          <h3>Aucun cloud étranger</h3>
+          <p>Traitement en local sur le microcontrôleur. Infrastructure hébergée en France. Vos données ne quittent jamais votre périmètre.</p>
+        </div>
+
+        <div class="why-item">
+          <span class="why-icon">◈</span>
+          <h3>Temps réel garanti</h3>
+          <p>Moins d'une milliseconde par échantillon à 80 MHz. Conçu pour les systèmes à contraintes dures où la latence est critique.</p>
+        </div>
+
+        <div class="why-item">
+          <span class="why-icon">◈</span>
+          <h3>Empreinte minimale</h3>
+          <p>Zéro allocation dynamique. Moins de 4 KB RAM par détecteur. Fonctionne sur les MCU les plus contraints.</p>
+        </div>
+
+        <div class="why-item">
+          <span class="why-icon">◈</span>
+          <h3>Auditabilité totale</h3>
+          <p>Code C99 pur, lisible, sans dépendance opaque. Adapté aux environnements nécessitant une qualification logicielle.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="container">
+      <p class="section-label">03 — Contact</p>
+      <div class="contact-block">
+        <div>
+          <h2>Discutons de votre projet</h2>
+          <p>Intégration sur mesure, licence commerciale, démo technique — contactez-nous.</p>
+        </div>
+        <a href="mailto:contact@fovet.eu" class="btn-primary">contact@fovet.eu</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>© 2026 Antoine Porte — Fovet. Tous droits réservés.</p>
+      <div class="footer-legal">
+        <a href="mailto:contact@fovet.eu">contact@fovet.eu</a>
+        <a href="#">Mentions légales</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

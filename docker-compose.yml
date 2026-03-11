@@ -1,0 +1,61 @@
+# Fovet Vigie — Production stack
+# Usage: docker compose up -d
+#
+# Prerequisites:
+#   - Copy platform-dashboard/.env.example → platform-dashboard/.env and fill values
+#   - Copy mosquitto/mosquitto.conf.example → mosquitto/mosquitto.conf (if needed)
+#   - Create mosquitto/passwd with mosquitto_passwd
+
+services:
+
+  # ── PostgreSQL + TimescaleDB ───────────────────────────────────────────────
+  db:
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fovet}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      POSTGRES_DB: fovet_vigie
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"   # localhost only — not exposed to internet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fovet}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Mosquitto MQTT broker ──────────────────────────────────────────────────
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/passwd:/mosquitto/config/passwd:ro
+      - ./mosquitto/acl:/mosquitto/config/acl:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    ports:
+      - "127.0.0.1:1883:1883"   # localhost only
+
+  # ── Fovet Vigie dashboard ─────────────────────────────────────────────────
+  dashboard:
+    build:
+      context: ./platform-dashboard
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    env_file:
+      - ./platform-dashboard/.env
+    ports:
+      - "127.0.0.1:3000:3000"   # expose via reverse proxy (Nginx/Traefik)
+
+volumes:
+  db_data:
+  mosquitto_data:
+  mosquitto_log:

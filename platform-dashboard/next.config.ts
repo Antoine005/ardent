@@ -21,6 +21,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  output: "standalone", // required for Docker multi-stage build
   async headers() {
     return [
       {
